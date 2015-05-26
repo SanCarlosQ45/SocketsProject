@@ -1,0 +1,441 @@
+head	1.11;
+access;
+symbols;
+locks;
+comment	@// @;
+
+
+1.11
+date	2014.05.27.22.49.34;	author -;	state -;
+branches;
+next	1.10;
+
+1.10
+date	2014.05.27.21.14.13;	author -;	state -;
+branches;
+next	1.9;
+
+1.9
+date	2014.05.27.21.05.04;	author -;	state -;
+branches;
+next	1.8;
+
+1.8
+date	2014.05.27.20.40.23;	author -;	state -;
+branches;
+next	1.7;
+
+1.7
+date	2014.05.27.19.59.02;	author -;	state -;
+branches;
+next	1.6;
+
+1.6
+date	2014.05.27.19.57.20;	author -;	state -;
+branches;
+next	1.5;
+
+1.5
+date	2014.05.27.19.45.44;	author -;	state -;
+branches;
+next	1.4;
+
+1.4
+date	2014.05.24.05.54.44;	author -;	state -;
+branches;
+next	1.3;
+
+1.3
+date	2014.05.24.05.17.25;	author -;	state -;
+branches;
+next	1.2;
+
+1.2
+date	2014.05.24.05.10.05;	author -;	state -;
+branches;
+next	1.1;
+
+1.1
+date	2014.05.24.05.02.59;	author -;	state -;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.11
+log
+@-
+@
+text
+@// $Id: cixclient.cpp,v 1.10 2014-05-27 14:14:13-07 - - $
+
+#include <iostream>
+#include <string>
+#include <vector>
+#include <unordered_map>
+using namespace std;
+
+#include <libgen.h>
+#include <sys/types.h>
+#include <unistd.h>
+
+#include "logstream.h"
+#include "sockets.h"
+#include "cix_protocol.h"
+
+logstream log (cout);
+struct cixclient_exit: public exception {};
+
+unordered_map<string,cix_command> command_map {
+   {"exit", CIX_EXIT},
+   {"help", CIX_HELP},
+   {"ls"  , CIX_LS  },
+};
+
+void cix_help() {
+   static vector<string> help = {
+      "exit         - Exit the program.  Equivalent to EOF.",
+      "get filename - Copy remote file to local host.",
+      "help         - Print help summary.",
+      "ls           - List names of files on remote server.",
+      "put filename - Copy local file to remote host.",
+      "rm filename  - Remove file from remote server.",
+   };
+   for (const auto& line: help) cout << line << endl;
+}
+
+void cix_ls (client_socket& server) {
+   cix_header header;
+   header.cix_command = CIX_LS;
+   log << "sending header " << header << endl;
+   send_packet (server, &header, sizeof header);
+   recv_packet (server, &header, sizeof header);
+   log << "received header " << header << endl;
+   if (header.cix_command != CIX_LSOUT) {
+      log << "sent CIX_LS, server did not return CIX_LSOUT" << endl;
+      log << "server returned " << header << endl;
+   }else {
+      char buffer[header.cix_nbytes + 1];
+      recv_packet (server, buffer, header.cix_nbytes);
+      log << "received " << header.cix_nbytes << " bytes" << endl;
+      buffer[header.cix_nbytes] = '\0';
+      cout << buffer;
+   }
+}
+
+
+void usage() {
+   cerr << "Usage: " << log.execname() << " [host] [port]" << endl;
+   throw cixclient_exit();
+}
+
+int main (int argc, char** argv) {
+   log.set_execname (basename (argv[0]));
+   log << "starting" << endl;
+   vector<string> args (&argv[1], &argv[argc]);
+   if (args.size() > 2) usage();
+   string host = get_cix_server_host (args, 0);
+   in_port_t port = get_cix_server_port (args, 1);
+   log << to_string (hostinfo()) << endl;
+   try {
+      log << "connecting to " << host << " port " << port << endl;
+      client_socket server (host, port);
+      log << "connected to " << to_string (server) << endl;
+      for (;;) {
+         string line;
+         getline (cin, line);
+         if (cin.eof()) throw cixclient_exit();
+         log << "command " << line << endl;
+         const auto& itor = command_map.find (line);
+         cix_command cmd = itor == command_map.end()
+                         ? CIX_ERROR : itor->second;
+         try {
+            switch (cmd) {
+               case CIX_EXIT:
+                  throw cixclient_exit();
+                  break;
+               case CIX_HELP:
+                  cix_help();
+                  break;
+               case CIX_LS:
+                  cix_ls (server);
+                  break;
+               default:
+                  log << line << ": invalid command" << endl;
+                  break;
+            }
+         }catch (socket_error& error) {
+            log << error.what() << endl;
+         }
+      }
+   }catch (socket_error& error) {
+      log << error.what() << endl;
+   }catch (cixclient_exit& error) {
+      log << "caught cixclient_exit" << endl;
+   }
+   log << "finishing" << endl;
+   return 0;
+}
+
+@
+
+
+1.10
+log
+@-
+@
+text
+@d1 1
+a1 1
+// $Id: cixclient.cpp,v 1.9 2014-05-27 14:05:04-07 - - $
+d46 2
+a47 1
+      log << " sent CIX_LS, server did not return CIX_LSOUT" << endl;
+a110 1
+
+@
+
+
+1.9
+log
+@-
+@
+text
+@d1 1
+a1 1
+// $Id: cixclient.cpp,v 1.8 2014-05-27 13:40:23-07 - - $
+d59 1
+a59 1
+   exit (1);
+d104 1
+@
+
+
+1.8
+log
+@-
+@
+text
+@d1 1
+a1 1
+// $Id: cixclient.cpp,v 1.7 2014-05-27 12:59:02-07 - - $
+d20 6
+a56 6
+unordered_map<string,cix_command> command_map {
+   {"exit", CIX_EXIT},
+   {"help", CIX_HELP},
+   {"ls"  , CIX_LS  },
+};
+
+d59 1
+@
+
+
+1.7
+log
+@-
+@
+text
+@d1 1
+a1 1
+// $Id: cixclient.cpp,v 1.6 2014-05-27 12:57:20-07 - - $
+d57 4
+d65 3
+a67 2
+   string host = args.size() < 1 ? "localhost" : args[0];
+   in_port_t port = args.size() < 2 ? 50000 : stoi (args[1]);
+@
+
+
+1.6
+log
+@-
+@
+text
+@d1 1
+a1 1
+// $Id: cixclient.cpp,v 1.5 2014-05-27 12:45:44-07 - - $
+d17 1
+a17 1
+logstream outlog (cout);
+d35 1
+a35 1
+   outlog << "sending header " << header << endl;
+d38 1
+a38 1
+   outlog << "received header " << header << endl;
+d40 1
+a40 1
+      outlog << " sent CIX_LS, server did not return CIX_LSOUT" << endl;
+d44 1
+a44 1
+      outlog << "received " << header.cix_nbytes << " bytes" << endl;
+d58 2
+a59 2
+   outlog.set_execname (basename (argv[0]));
+   outlog << "starting" << endl;
+d63 1
+a63 1
+   outlog << to_string (hostinfo()) << endl;
+d65 1
+a65 1
+      outlog << "connecting to " << host << " port " << port << endl;
+d67 1
+a67 1
+      outlog << "connected to " << to_string (server) << endl;
+d72 1
+a72 1
+         outlog << "command " << line << endl;
+d88 1
+a88 1
+                  outlog << line << ": invalid command" << endl;
+d92 1
+a92 1
+            outlog << error.what() << endl;
+d96 1
+a96 1
+      outlog << error.what() << endl;
+d99 1
+a99 1
+   outlog << "finishing" << endl;
+@
+
+
+1.5
+log
+@-
+@
+text
+@d1 1
+a1 1
+// $Id: cixclient.cpp,v 1.4 2014-05-23 22:54:44-07 - - $
+d17 1
+a17 1
+logstream elog (cout);
+d35 1
+a35 1
+   elog << "sending header " << header << endl;
+d38 1
+a38 1
+   elog << "received header " << header << endl;
+d40 1
+a40 1
+      elog << " sent CIX_LS, server did not return CIX_LSOUT" << endl;
+d44 1
+a44 1
+      elog << "received " << header.cix_nbytes << " bytes" << endl;
+d58 2
+a59 2
+   elog.set_execname (basename (argv[0]));
+   elog << "starting" << endl;
+d63 1
+a63 1
+   elog << to_string (hostinfo()) << endl;
+d65 1
+a65 1
+      elog << "connecting to " << host << " port " << port << endl;
+d67 1
+a67 1
+      elog << "connected to " << to_string (server) << endl;
+d72 1
+a72 1
+         elog << "command " << line << endl;
+d88 1
+a88 1
+                  elog << line << ": invalid command" << endl;
+d92 1
+a92 1
+            elog << error.what() << endl;
+d96 1
+a96 1
+      elog << error.what() << endl;
+d99 1
+a99 1
+   elog << "finishing" << endl;
+@
+
+
+1.4
+log
+@-
+@
+text
+@d1 1
+a1 1
+// $Id: cixclient.cpp,v 1.3 2014-05-23 22:17:25-07 - - $
+d15 1
+a15 1
+#include "cixlib.h"
+d17 1
+a17 1
+logstream elog (cerr);
+@
+
+
+1.3
+log
+@-
+@
+text
+@d1 1
+a1 1
+// $Id: cixclient.cpp,v 1.2 2014-05-23 22:10:05-07 - - $
+d35 1
+d38 1
+d44 1
+d59 1
+d72 1
+d80 1
+d83 1
+a97 1
+      // do nothing.
+d99 1
+@
+
+
+1.2
+log
+@-
+@
+text
+@d1 1
+a1 1
+// $Id: cixclient.cpp,v 1.1 2014-05-23 22:02:59-07 - - $
+d18 1
+d47 1
+a47 2
+struct lsclient_exit: public exception {};
+
+d67 1
+a67 1
+         if (cin.eof()) throw lsclient_exit();
+d74 2
+a75 2
+                  throw lsclient_exit();
+               case CIX_HEOP:
+d90 1
+a90 1
+   }catch (lsclient_exit& error) {
+@
+
+
+1.1
+log
+@-
+@
+text
+@d1 1
+a1 1
+// $Id: lsclient.cpp,v 1.1 2014-05-23 21:09:42-07 - - $
+d19 13
+a31 1
+void client_ls (client_socket& server) {
+d50 1
+d75 2
+d78 1
+a78 1
+                  client_ls (server);
+@

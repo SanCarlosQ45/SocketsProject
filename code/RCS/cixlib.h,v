@@ -1,0 +1,97 @@
+head	1.3;
+access;
+symbols;
+locks;
+comment	@ * @;
+
+
+1.3
+date	2014.05.24.05.54.44;	author -;	state -;
+branches;
+next	1.2;
+
+1.2
+date	2014.05.24.05.10.05;	author -;	state -;
+branches;
+next	1.1;
+
+1.1
+date	2014.05.24.05.02.59;	author -;	state -;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.3
+log
+@-
+@
+text
+@// $Id: cixlib.h,v 1.2 2014-05-23 22:10:05-07 - - $
+
+#ifndef __CIXLIB__H__
+#define __CIXLIB__H__
+
+#include <cstdint>
+#include <cstring>
+#include <iostream>
+using namespace std;
+
+#include "sockets.h"
+
+enum cix_command {CIX_ERROR = 0, CIX_EXIT,
+                  CIX_GET, CIX_HELP, CIX_LS, CIX_PUT, CIX_RM,
+                  CIX_FILE, CIX_LSOUT, CIS_ACK, CIS_NAK};
+
+size_t constexpr CIX_FILENAME_SIZE = 59;
+struct cix_header {
+   uint32_t cix_nbytes {0};
+   uint8_t cix_command {0};
+   char cix_filename[CIX_FILENAME_SIZE];
+   cix_header() { memset (cix_filename, 0, CIX_FILENAME_SIZE); }
+};
+
+void send_packet (base_socket& socket,
+                  const void* buffer, size_t bufsize);
+
+void recv_packet (base_socket& socket, void* buffer, size_t bufsize);
+
+ostream& operator<< (ostream& out, const cix_header& header);
+
+#endif
+
+@
+
+
+1.2
+log
+@-
+@
+text
+@d1 1
+a1 1
+// $Id: cixlib.h,v 1.1 2014-05-23 22:02:59-07 - - $
+d8 1
+d13 2
+a14 2
+enum cix_command {CIX_ZERO = 0, CIX_EXIT, CIX_ERROR, CIX_HELP,
+                  CIX_GET, CIX_LS, CIX_PUT, CIX_RM,
+d30 2
+@
+
+
+1.1
+log
+@-
+@
+text
+@d1 1
+a1 1
+// $Id: cixlib.h,v 1.1 2014-05-23 21:09:42-07 - - $
+d12 1
+a12 1
+enum cix_command {CIX_ZERO = 0, CIX_EXIT, CIX_ERROR,
+@

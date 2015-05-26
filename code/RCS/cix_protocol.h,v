@@ -1,0 +1,116 @@
+head	1.4;
+access;
+symbols;
+locks;
+comment	@ * @;
+
+
+1.4
+date	2014.05.28.19.23.46;	author -;	state -;
+branches;
+next	1.3;
+
+1.3
+date	2014.05.27.22.49.34;	author -;	state -;
+branches;
+next	1.2;
+
+1.2
+date	2014.05.27.20.40.23;	author -;	state -;
+branches;
+next	1.1;
+
+1.1
+date	2014.05.27.19.45.44;	author -;	state -;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.4
+log
+@-
+@
+text
+@// $Id: cix_protocol.h,v 1.3 2014-05-27 15:49:34-07 - - $
+
+#ifndef __CIX_PROTOCOL__H__
+#define __CIX_PROTOCOL__H__
+
+#include <cstdint>
+#include <cstring>
+#include <iostream>
+using namespace std;
+
+#include "sockets.h"
+
+enum cix_command {CIX_ERROR = 0, CIX_EXIT,
+                  CIX_GET, CIX_HELP, CIX_LS, CIX_PUT, CIX_RM,
+                  CIX_FILE, CIX_LSOUT, CIX_ACK, CIX_NAK};
+
+size_t constexpr CIX_FILENAME_SIZE = 59;
+struct cix_header {
+   uint32_t cix_nbytes {0};
+   uint8_t cix_command {0};
+   char cix_filename[CIX_FILENAME_SIZE] {};
+};
+
+void send_packet (base_socket& socket,
+                  const void* buffer, size_t bufsize);
+
+void recv_packet (base_socket& socket, void* buffer, size_t bufsize);
+
+ostream& operator<< (ostream& out, const cix_header& header);
+
+string get_cix_server_host (const vector<string>& args, size_t index);
+
+in_port_t get_cix_server_port (const vector<string>& args,
+                               size_t index);
+
+#endif
+
+@
+
+
+1.3
+log
+@-
+@
+text
+@d1 1
+a1 1
+// $Id: cix_protocol.h,v 1.2 2014-05-27 13:40:23-07 - - $
+d21 1
+a21 2
+   char cix_filename[CIX_FILENAME_SIZE];
+   cix_header() { memset (cix_filename, 0, CIX_FILENAME_SIZE); }
+@
+
+
+1.2
+log
+@-
+@
+text
+@d1 1
+a1 1
+// $Id: cix_protocol.h,v 1.1 2014-05-27 12:45:44-07 - - $
+d15 1
+a15 1
+                  CIX_FILE, CIX_LSOUT, CIS_ACK, CIS_NAK};
+@
+
+
+1.1
+log
+@-
+@
+text
+@d1 1
+a1 1
+// $Id: cixlib.h,v 1.3 2014-05-23 22:54:44-07 - - $
+d32 5
+@

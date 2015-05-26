@@ -1,0 +1,205 @@
+head	1.6;
+access;
+symbols;
+locks;
+comment	@// @;
+
+
+1.6
+date	2014.05.28.00.16.42;	author -;	state -;
+branches;
+next	1.5;
+
+1.5
+date	2014.05.27.23.26.07;	author -;	state -;
+branches;
+next	1.4;
+
+1.4
+date	2014.05.27.22.49.34;	author -;	state -;
+branches;
+next	1.3;
+
+1.3
+date	2014.05.27.21.05.04;	author -;	state -;
+branches;
+next	1.2;
+
+1.2
+date	2014.05.27.20.40.23;	author -;	state -;
+branches;
+next	1.1;
+
+1.1
+date	2014.05.27.19.45.44;	author -;	state -;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.6
+log
+@-
+@
+text
+@// $Id: cix_protocol.cpp,v 1.5 2014-05-27 16:26:07-07 - - $
+
+#include <unordered_map>
+#include <string>
+using namespace std;
+
+#include "cix_protocol.h"
+
+const unordered_map<int,string> cix_command_map {
+   {int (CIX_ERROR), "CIX_ERROR"},
+   {int (CIX_EXIT ), "CIX_EXIT" },
+   {int (CIX_GET  ), "CIX_GET"  },
+   {int (CIX_HELP ), "CIX_HELP" },
+   {int (CIX_LS   ), "CIX_LS"   },
+   {int (CIX_PUT  ), "CIX_PUT"  },
+   {int (CIX_RM   ), "CIX_RM"   },
+   {int (CIX_FILE ), "CIX_FILE" },
+   {int (CIX_LSOUT), "CIX_LSOUT"},
+   {int (CIX_ACK  ), "CIS_ACK"  },
+   {int (CIX_NAK  ), "CIS_NAK"  },
+};
+
+
+void send_packet (base_socket& socket,
+                  const void* buffer, size_t bufsize) {
+   const char* bufptr = (const char*) buffer;
+   ssize_t ntosend = bufsize;
+   do {
+      ssize_t nbytes = socket.send (bufptr, ntosend);
+      if (nbytes < 0) throw socket_sys_error (to_string (socket));
+      bufptr += nbytes;
+      ntosend -= nbytes;
+   }while (ntosend > 0);
+}
+
+void recv_packet (base_socket& socket, void* buffer, size_t bufsize) {
+   char* bufptr = (char*) buffer;
+   ssize_t ntorecv = bufsize;
+   do {
+      ssize_t nbytes = socket.recv (bufptr, ntorecv);
+      if (nbytes < 0) throw socket_sys_error (to_string (socket));
+      if (nbytes == 0) throw socket_error (to_string (socket)
+                                           + " is closed");
+      bufptr += nbytes;
+      ntorecv -= nbytes;
+   }while (ntorecv > 0);
+}
+
+ostream& operator<< (ostream& out, const cix_header& header) {
+   const auto& itor = cix_command_map.find (header.cix_command);
+   string code = itor == cix_command_map.end() ? "?" : itor->second;
+   cout << "{" << header.cix_nbytes << "," << code << "="
+        << int (header.cix_command) << ",\"" << header.cix_filename
+        << "\"}";
+   return out;
+}    
+
+
+string get_cix_server_host (const vector<string>& args, size_t index) {
+   if (index < args.size()) return args[index];
+   char* host = getenv ("CIX_SERVER_HOST");
+   if (host != nullptr) return host;
+   return "localhost";
+}
+
+in_port_t get_cix_server_port (const vector<string>& args,
+                               size_t index) {
+   string port = "-1";
+   if (index < args.size()) port = args[index];
+   else {
+      char* envport = getenv ("CIX_SERVER_PORT");
+      if (envport != nullptr) port = envport;
+   }
+   return stoi (port);
+}
+     
+@
+
+
+1.5
+log
+@-
+@
+text
+@d1 1
+a1 1
+// $Id: cix_protocol.cpp,v 1.4 2014-05-27 15:49:34-07 - - $
+d27 1
+a27 1
+   size_t ntosend = bufsize;
+d29 2
+a30 1
+      size_t nbytes = socket.send (bufptr, ntosend);
+d38 1
+a38 1
+   size_t ntorecv = bufsize;
+d40 4
+a43 3
+      size_t nbytes = socket.recv (bufptr, ntorecv);
+      if (nbytes == 0) throw socket_error ("peer socket.recv ("
+                             + to_string (socket) + " is closed");
+@
+
+
+1.4
+log
+@-
+@
+text
+@d1 1
+a1 1
+// $Id: cix_protocol.cpp,v 1.3 2014-05-27 14:05:04-07 - - $
+d40 2
+a41 1
+      if (nbytes == 0) throw socket_error ("socket.recv is closed");
+@
+
+
+1.3
+log
+@-
+@
+text
+@d1 1
+a1 1
+// $Id: cix_protocol.cpp,v 1.2 2014-05-27 13:40:23-07 - - $
+d9 1
+a9 1
+unordered_map<int,string> cix_command_map {
+d19 2
+a20 2
+   {int (CIS_ACK  ), "CIS_ACK"  },
+   {int (CIS_NAK  ), "CIS_NAK"  },
+@
+
+
+1.2
+log
+@-
+@
+text
+@d1 1
+a1 1
+// $Id: cix_protocol.cpp,v 1.1 2014-05-27 12:45:44-07 - - $
+d55 1
+@
+
+
+1.1
+log
+@-
+@
+text
+@d1 1
+a1 1
+// $Id: cixlib.cpp,v 1.2 2014-05-23 22:54:44-07 - - $
+d55 18
+@

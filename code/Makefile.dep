@@ -1,0 +1,4 @@
+sockets.o: sockets.cpp sockets.h
+cix_protocol.o: cix_protocol.cpp cix_protocol.h sockets.h
+cixdaemon.o: cixdaemon.cpp logstream.h sockets.h
+cixclient.o: cixclient.cpp logstream.h sockets.h cix_protocol.h

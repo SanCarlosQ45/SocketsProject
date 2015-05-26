@@ -1,0 +1,300 @@
+head	1.8;
+access;
+symbols;
+locks;
+comment	@// @;
+
+
+1.8
+date	2014.05.27.22.49.34;	author -;	state -;
+branches;
+next	1.7;
+
+1.7
+date	2014.05.27.19.59.02;	author -;	state -;
+branches;
+next	1.6;
+
+1.6
+date	2014.05.27.19.57.20;	author -;	state -;
+branches;
+next	1.5;
+
+1.5
+date	2014.05.27.19.46.10;	author -;	state -;
+branches;
+next	1.4;
+
+1.4
+date	2014.05.27.19.45.44;	author -;	state -;
+branches;
+next	1.3;
+
+1.3
+date	2014.05.24.05.55.37;	author -;	state -;
+branches;
+next	1.2;
+
+1.2
+date	2014.05.24.05.54.44;	author -;	state -;
+branches;
+next	1.1;
+
+1.1
+date	2014.05.24.05.02.59;	author -;	state -;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.8
+log
+@-
+@
+text
+@// $Id: cixserver.cpp,v 1.7 2014-05-27 12:59:02-07 - - $
+
+#include <iostream>
+using namespace std;
+
+#include <libgen.h>
+
+#include "cix_protocol.h"
+#include "logstream.h"
+#include "sockets.h"
+
+logstream log (cout);
+
+void reply_ls (accepted_socket& client_sock, cix_header& header) {
+   FILE* ls_pipe = popen ("ls -l", "r");
+   if (ls_pipe == NULL) {
+      log << "ls -l: popen failed: " << strerror (errno) << endl;
+      header.cix_command = CIX_NAK;
+      header.cix_nbytes = errno;
+      send_packet (client_sock, &header, sizeof header);
+   }
+   string ls_output;
+   char buffer[0x1000];
+   for (;;) {
+      char* rc = fgets (buffer, sizeof buffer, ls_pipe);
+      if (rc == nullptr) break;
+      ls_output.append (buffer);
+   }
+   header.cix_command = CIX_LSOUT;
+   header.cix_nbytes = ls_output.size();
+   memset (header.cix_filename, 0, CIX_FILENAME_SIZE);
+   log << "sending header " << header << endl;
+   send_packet (client_sock, &header, sizeof header);
+   send_packet (client_sock, ls_output.c_str(), ls_output.size());
+   log << "sent " << ls_output.size() << " bytes" << endl;
+}
+
+
+int main (int argc, char**argv) {
+   log.set_execname (basename (argv[0]));
+   log << "starting" << endl;
+   vector<string> args (&argv[1], &argv[argc]);
+   int client_fd = stoi (args[0]);
+   log << "starting client_fd " << client_fd << endl;
+   try {
+      accepted_socket client_sock (client_fd);
+      log << "connected to " << to_string (client_sock) << endl;
+      for (;;) {
+         cix_header header;
+         recv_packet (client_sock, &header, sizeof header);
+         log << "received header " << header << endl;
+         switch (header.cix_command) {
+            case CIX_LS:
+               reply_ls (client_sock, header);
+               break;
+            default:
+               log << "invalid header from client" << endl;
+               log << "cix_nbytes = " << header.cix_nbytes << endl;
+               log << "cix_command = " << header.cix_command << endl;
+               log << "cix_filename = " << header.cix_filename << endl;
+               break;
+         }
+      }
+   }catch (socket_error& error) {
+      log << error.what() << endl;
+   }
+   log << "finishing" << endl;
+   return 0;
+}
+
+@
+
+
+1.7
+log
+@-
+@
+text
+@d1 1
+a1 1
+// $Id: cixserver.cpp,v 1.6 2014-05-27 12:57:20-07 - - $
+d16 6
+a21 1
+   if (ls_pipe == NULL) throw socket_sys_error ("popen(\"ls -l\")");
+@
+
+
+1.6
+log
+@-
+@
+text
+@d1 1
+a1 1
+// $Id: cixserver.cpp,v 1.5 2014-05-27 12:46:10-07 - - $
+d12 1
+a12 1
+logstream outlog (cout);
+d27 1
+a27 1
+   outlog << "sending header " << header << endl;
+d30 1
+a30 1
+   outlog << "sent " << ls_output.size() << " bytes" << endl;
+d35 2
+a36 2
+   outlog.set_execname (basename (argv[0]));
+   outlog << "starting" << endl;
+d39 1
+a39 1
+   outlog << "starting client_fd " << client_fd << endl;
+d42 1
+a42 1
+      outlog << "connected to " << to_string (client_sock) << endl;
+d46 1
+a46 1
+         outlog << "received header " << header << endl;
+d52 4
+a55 4
+               outlog << "invalid header from client" << endl;
+               outlog << "cix_nbytes = " << header.cix_nbytes << endl;
+               outlog << "cix_command = " << header.cix_command << endl;
+               outlog << "cix_filename = " << header.cix_filename << endl;
+d60 1
+a60 1
+      outlog << error.what() << endl;
+d62 1
+a62 1
+   outlog << "finishing" << endl;
+@
+
+
+1.5
+log
+@-
+@
+text
+@d1 1
+a1 1
+// $Id: cixserver.cpp,v 1.4 2014-05-27 12:45:44-07 - - $
+d12 1
+a12 1
+logstream elog (cout);
+d27 1
+a27 1
+   elog << "sending header " << header << endl;
+d30 1
+a30 1
+   elog << "sent " << ls_output.size() << " bytes" << endl;
+d35 2
+a36 1
+   elog.set_execname (basename (argv[0]));
+d39 1
+a39 1
+   elog << "starting client_fd " << client_fd << endl;
+d42 1
+a42 1
+      elog << "connected to " << to_string (client_sock) << endl;
+d46 1
+a46 1
+         elog << "received header " << header << endl;
+d52 4
+a55 4
+               elog << "invalid header from client" << endl;
+               elog << "cix_nbytes = " << header.cix_nbytes << endl;
+               elog << "cix_command = " << header.cix_command << endl;
+               elog << "cix_filename = " << header.cix_filename << endl;
+d60 1
+a60 1
+      elog << error.what() << endl;
+d62 1
+a62 1
+   elog << "finishing" << endl;
+@
+
+
+1.4
+log
+@-
+@
+text
+@d1 1
+a1 1
+// $Id: cixserver.cpp,v 1.3 2014-05-23 22:55:37-07 - - $
+d8 1
+a8 1
+#include "cixlib.h"
+@
+
+
+1.3
+log
+@-
+@
+text
+@d1 1
+a1 1
+// $Id: cixserver.cpp,v 1.2 2014-05-23 22:54:44-07 - - $
+d12 1
+a12 1
+logstream elog (cerr);
+@
+
+
+1.2
+log
+@-
+@
+text
+@d1 1
+a1 1
+// $Id: cixserver.cpp,v 1.1 2014-05-23 22:02:59-07 - - $
+d33 1
+@
+
+
+1.1
+log
+@-
+@
+text
+@d1 1
+a1 1
+// $Id: lsserver.cpp,v 1.2 2014-05-23 21:09:51-07 - - $
+d27 1
+d30 1
+d37 1
+d41 15
+a55 12
+      cix_header header;
+      recv_packet (client_sock, &header, sizeof header);
+      switch (header.cix_command) {
+         case CIX_LS:
+            reply_ls (client_sock, header);
+            break;
+         default:
+            elog << "invalid header from client" << endl;
+            elog << "cix_nbytes = " << header.cix_nbytes << endl;
+            elog << "cix_command = " << header.cix_command << endl;
+            elog << "cix_filename = " << header.cix_filename << endl;
+            break;
+d60 1
+@
